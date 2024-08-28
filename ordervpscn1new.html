@@ -18,6 +18,41 @@ a:visited { color: #000080; text-decoration: none }
 a:hover { color: #FF3300; text-decoration: none }
 -->
 </style>
+<style>
+        .captcha-container {
+            margin: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .captcha-image {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .captcha-input {
+            font-size: 18px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        .captcha-button, .refresh-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .loading-indicator {
+            display: none;
+            font-size: 16px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .disabled-button {
+            background-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+    
 <script language="JavaScript">
 <!--
 function MM_swapImgRestore() { //v3.0
@@ -249,13 +284,13 @@ mode of payment.</font></td>
 <tbody>
 <tr>
 <td width="100%">
-<form method="post" name="cform" action="http://www.serversinasia.com/cgi-bin/kaufen.pl">
+<form method="POST" name="cform" action="http://localhost:8000/backend.php" onsubmit="return handleSubmit()">
 <div align="left">
 <table id="table228" border="0" cellpadding="1" cellspacing="0" width="100%">
 <tbody>
 <tr>
 <td width="100%">
-<div align="center">
+< align="center">
 <table id="table229" bgcolor="#ffffff" border="0" cellpadding="4" width="100%">
 <tbody>
 <tr>
@@ -799,23 +834,174 @@ name &amp; address</font></td>
 <table id="table260" border="0" cellpadding="0" cellspacing="0" width="80%">
 <tbody>
 <tr>
-<td align="center" valign="middle" width="50%"> <font face="Arial" size="2"> <input value="Send" name="send" type="submit"></font></td>
+<!-- <td align="center" valign="middle" width="50%"> <font face="Arial" size="2"> <input value="Send" name="send" type="submit"></font></td> -->
 <td align="center" valign="middle" width="50%"> <font face="Arial" size="2"> <input value="Delete" name="reset" type="reset"></font></td>
 </tr>
 </tbody>
 </table>
 </div>
+
+
 </td>
 </tr>
+
 </tbody>
+
 </table>
+
+<div class="captcha-container">
+    <canvas id="captchaCanvas" class="captcha-image" width="250" height="100"></canvas>
+    <input type="text" id="captchaInput" name="captchaInput" class="captcha-input" placeholder="Enter the text">
+    <button type="submit" id="submitButton" class="captcha-button">Submit</button>
+    <button type="button" onclick="generateCaptcha()" class="refresh-button">Refresh CAPTCHA</button>
+    <div id="captchaResult"></div>
+    <div id="loadingIndicator" class="loading-indicator">Submitting, please wait...</div>
+</div>
+
 </div>
 </td>
 </tr>
 </tbody>
 </table>
 </div>
-<input name="recipient" value="orders@serversinasia.com" type="hidden"><input name="required" value="email" type="hidden"><input name="redirect" value="http://www.serversinasia.com/thankyoufororder.html" type="hidden"><input name="subject" value="VPS-CN 1 Order" type="hidden"><input name="missing_fields_redirect" value="http://www.serversinasia.com/missingfields.html" type="hidden"> </form>
+<input name="recipient" value="orders@serversinasia.com" type="hidden"><input name="required" value="email" type="hidden"><input name="redirect" value="http://www.serversinasia.com/thankyoufororder.html" type="hidden"><input name="subject" value="VPS-CN 1 Order" type="hidden"><input name="missing_fields_redirect" value="http://www.serversinasia.com/missingfields.html" type="hidden"> 
+</form>
+
+
+</td>
+</tr>
+
+</table></div>
+
+<input type="hidden" name="recipient" value="orders@vwt.net"><input type="hidden" name="required" value="email"><input type="hidden" name="redirect" value="http://www.vwt.net/thanksfororder.htm"><input type="hidden" name="subject" value="Order"><input type="hidden" name="missing_fields_redirect" value="http://www.vwt.net/missingfields.htm">
+</form>
+</div>
+<script>
+function setBaseName() {
+// Get the current URL
+var currentUrl = window.location.href;
+
+// Extract the .html part of the URL
+var urlParts = currentUrl.split('/');
+var lastPart = urlParts[urlParts.length - 1]; // Get the last part of the URL
+var baseName = lastPart.split('.')[0]; // Extract the name before .html
+baseName = baseName.replace(/^order/i, '');
+// Set the value of the hidden input field
+document.getElementById('basename').value = baseName;
+
+}
+setBaseName();
+</script>
+<script>
+const canvas = document.getElementById('captchaCanvas');
+const ctx = canvas.getContext('2d');
+const submitButton = document.getElementById('submitButton');
+const loadingIndicator = document.getElementById('loadingIndicator');
+const captchaInput = document.getElementById('captchaInput');
+let captchaText = '';
+
+function generateCaptcha() {
+submitButton.classList.remove('disabled-button');
+submitButton.disabled = false;
+loadingIndicator.style.display = 'none';
+const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+captchaText = '';
+for (let i = 0; i < 6; i++) {
+captchaText += chars.charAt(Math.floor(Math.random() * chars.length));
+}
+
+// Clear canvas
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+// Draw background
+ctx.fillStyle = '#f3f3f3';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// Draw CAPTCHA text with distortion
+ctx.font = '40px Arial';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+for (let i = 0; i < captchaText.length; i++) {
+const char = captchaText.charAt(i);
+const x = canvas.width / 2 - (captchaText.length / 2 - i) * 35;
+const y = canvas.height / 2;
+const angle = Math.random() * 0.4 - 0.2; // Random angle for distortion
+ctx.save();
+ctx.translate(x, y);
+ctx.rotate(angle);
+ctx.fillStyle = `rgb(${Math.random() * 100 + 100}, ${Math.random() * 100 + 100}, ${Math.random() * 100 + 100})`;
+ctx.fillText(char, 0, 0);
+ctx.restore();
+}
+
+// Add some noise
+for (let i = 0; i < 50; i++) {
+ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 2, 2);
+}
+
+// Draw some lines
+ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+ctx.lineWidth = 2;
+for (let i = 0; i < 5; i++) {
+ctx.beginPath();
+ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+ctx.stroke();
+}
+}
+
+function validateCaptcha() {
+const enteredCaptcha = captchaInput.value;
+const resultDiv = document.getElementById('captchaResult');
+if (enteredCaptcha === captchaText) {
+resultDiv.innerText = 'CAPTCHA validated successfully!';
+resultDiv.style.color = 'green';
+return true; // Allow form submission
+} else {
+resultDiv.innerText = 'CAPTCHA validation failed. Please try again.';
+resultDiv.style.color = 'red';
+generateCaptcha(); // Regenerate CAPTCHA on failure
+captchaInput.value = ''; // Clear the text box
+return false; // Prevent form submission
+}
+}
+
+function handleSubmit(event) {
+
+// Get the email field value
+var emailField = document.getElementsByName('email')[0];
+var email = emailField.value.trim();
+
+// Regular expression for basic email validation
+var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Check if the email field is empty
+if (email === '') {
+alert('Email field cannot be empty.');
+
+emailField.focus();
+return false;
+}
+
+// Check if the email format is correct
+if (!emailPattern.test(email)) {
+alert('Please enter a valid email address.');
+emailField.focus();
+return false;
+}
+const isValid = validateCaptcha();
+if (isValid) {
+submitButton.classList.add('disabled-button'); // Disable submit button
+loadingIndicator.style.display = 'block'; // Show loading indicator
+submitButton.disabled = true; // Disable button to prevent re-submission
+}
+return isValid; // Proceed with form submission if CAPTCHA is valid
+}
+
+// Generate CAPTCHA when the page loads
+window.onload = generateCaptcha;
+</script>
 </td>
 </tr>
 </tbody>
